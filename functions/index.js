@@ -8,6 +8,7 @@ if (Object.keys(functions.config()).length) {
 }
 
 const API_BASE_URL = 'https://www.googleapis.com/books/v1/volumes/';
+const NO_COVER_IMG_LINK = 'https://upload.wikimedia.org/wikipedia/commons/9/9b/No_cover.JPG?20070608130414';
 
 const bot = new Telegraf(config.service.bot_token);
 
@@ -28,7 +29,8 @@ async function searchBook(ctx, query) {
         } else {
             let foundBooks = [...res.items];
             for (let i in foundBooks) {
-                await ctx.reply(`"${foundBooks[i].volumeInfo.title}"`);
+                await ctx.replyWithPhoto({url: foundBooks[i].volumeInfo?.imageLinks?.thumbnail || NO_COVER_IMG_LINK},
+					{caption: `"${foundBooks[i].volumeInfo.title}"`});
             }
         }
     });
