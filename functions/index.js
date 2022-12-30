@@ -1,5 +1,5 @@
 const functions = require("firebase-functions");
-const {Telegraf} = require("telegraf");
+const {Telegraf, Markup} = require("telegraf");
 const https = require("https");
 
 let config = require ("./env.json");
@@ -29,8 +29,13 @@ async function searchBook(ctx, query) {
         } else {
             let foundBooks = [...res.items];
             for (let i in foundBooks) {
+				let butName = `book_${foundBooks[i].id}`;
                 await ctx.replyWithPhoto({url: foundBooks[i].volumeInfo?.imageLinks?.thumbnail || NO_COVER_IMG_LINK},
-					{caption: `"${foundBooks[i].volumeInfo.title}"`});
+					{
+						caption: `"${foundBooks[i].volumeInfo.title}"`, 
+						...Markup.inlineKeyboard([Markup.button.callback('Press to take more info', butName)])
+					});
+				await addDescriptionButton(butName, foundBooks[i].id);
             }
         }
     });
@@ -65,6 +70,25 @@ function find(path, callback) {
 
     }).on("error", (err) => {
         callback(err);
+    });
+}
+
+function addDescriptionButton(name, id) {
+    bot.action(name, async (ctx) => {
+        try {
+            await ctx.answerCbQuery();
+            await find(id, async (err, res) => {
+                if (err) {
+                    await ctx.reply("Sorry, we have a problem(");
+                    console.log(err);
+                } else {
+                    await ctx.reply(res?.volumeInfo?.infoLink || 'Unfortunately, we don\'t know(');
+                }
+            });
+        } catch (e) {
+            await ctx.reply("Sorry, we have a problem(");
+            console.log(e);
+        }
     });
 }
 
