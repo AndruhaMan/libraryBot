@@ -28,7 +28,7 @@ bot.on('text', async (ctx) => {
 
 async function searchBook(ctx, query, callback) {
     query = '?q=' + query.split(' ').join('+');
-    query += `&startIndex=${startIndex}` + '&maxResults=5';
+    query += `&startIndex=${startIndex}` + '&maxResults=5' + '&printType=books' + '&download=epub';
     await find(query, async (err, res) => {
         if (err) {
             await ctx.reply("Sorry, we have a problem(");
