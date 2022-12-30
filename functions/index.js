@@ -10,6 +10,7 @@ if (Object.keys(functions.config()).length) {
 const API_BASE_URL = 'https://www.googleapis.com/books/v1/volumes/';
 const NO_COVER_IMG_LINK = 'https://upload.wikimedia.org/wikipedia/commons/9/9b/No_cover.JPG?20070608130414';
 let startIndex;
+
 const bot = new Telegraf(config.service.bot_token);
 
 bot.start((ctx) => {
@@ -89,7 +90,20 @@ function addDescriptionButton(name, id) {
                     await ctx.reply("Sorry, we have a problem(");
                     console.log(err);
                 } else {
-                    await ctx.reply(res?.volumeInfo?.infoLink || 'Unfortunately, we don\'t know(');
+					const info = res.volumeInfo;
+                    let description = info.description || "This book doesn't have description";
+					description = description.replace(/<\/?[^>]+(>|$)/g, "");
+					description = description.replace("  ", " ");
+					let authors = info.authors || "The author is unknown";
+					authors = authors.join(', ');
+                    await ctx.reply('Author: ' + authors + '\n' +
+						'Publisher: ' + (info?.publisher || 'Unfortunately, we don\'t know(') + '\n' +
+                        'Count of pages: ' + (info?.pageCount || 'Unfortunately, we don\'t know(') + '\n' +
+                        'Publication date: ' + (info?.publishedDate || 'Unfortunately, we don\'t know(') + '\n' +
+                        'Price: ' + (res?.saleInfo?.retailPrice?.amount || 'Unfortunately, we don\'t know(') + '\n' +
+                        'Description: ' + '\n' + description + '\n\n' +
+                        'Read a sample: ' + (res?.accessInfo?.webReaderLink || 'Unfortunately, we don\'t know(') + '\n' +
+                        'Link in Google Books: ' + (info?.infoLink || 'Unfortunately, we don\'t know('));
                 }
             });
         } catch (e) {
