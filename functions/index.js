@@ -96,8 +96,9 @@ function addDescriptionButton(name, id) {
 					description = description.replace("  ", " ");
 					let authors = info.authors || "The author is unknown";
 					authors = authors.join(', ');
-                    await ctx.reply('Author: ' + authors + '\n' +
-						'Publisher: ' + (info?.publisher || 'Unfortunately, we don\'t know(') + '\n' +
+                    await ctx.replyWithPhoto({url: info?.imageLinks?.small || info?.imageLinks?.thumbnail || NO_COVER_IMG_LINK},
+                        {caption: `"${info.title}"\nAuthors: ${authors}`});
+                    await ctx.reply('Publisher: ' + (info?.publisher || 'Unfortunately, we don\'t know(') + '\n' +
                         'Count of pages: ' + (info?.pageCount || 'Unfortunately, we don\'t know(') + '\n' +
                         'Publication date: ' + (info?.publishedDate || 'Unfortunately, we don\'t know(') + '\n' +
                         'Price: ' + (res?.saleInfo?.retailPrice?.amount || 'Unfortunately, we don\'t know(') + '\n' +
