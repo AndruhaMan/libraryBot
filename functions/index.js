@@ -9,19 +9,25 @@ if (Object.keys(functions.config()).length) {
 
 const API_BASE_URL = 'https://www.googleapis.com/books/v1/volumes/';
 const NO_COVER_IMG_LINK = 'https://upload.wikimedia.org/wikipedia/commons/9/9b/No_cover.JPG?20070608130414';
-
+let startIndex;
 const bot = new Telegraf(config.service.bot_token);
 
 bot.start((ctx) => {
     ctx.reply("Enter the title of book you want to find");
 });
+
 bot.on('text', async (ctx) => {
+    startIndex = 0;
     let query = ctx.message.text;
-    await searchBook(ctx, query);
+    await searchBook(ctx, query, function question() {
+        ctx.reply('Didn\'t find the book?', Markup.inlineKeyboard([Markup.button.callback('More results', 'butt_more')]));
+        addMoreButton('butt_more', query, question);
+    });
 });
 
-async function searchBook(ctx, query) {
+async function searchBook(ctx, query, callback) {
     query = '?q=' + query.split(' ').join('+');
+    query += `&startIndex=${startIndex}` + '&maxResults=5';
     await find(query, async (err, res) => {
         if (err) {
             await ctx.reply("Sorry, we have a problem(");
@@ -32,11 +38,12 @@ async function searchBook(ctx, query) {
 				let butName = `book_${foundBooks[i].id}`;
                 await ctx.replyWithPhoto({url: foundBooks[i].volumeInfo?.imageLinks?.thumbnail || NO_COVER_IMG_LINK},
 					{
-						caption: `"${foundBooks[i].volumeInfo.title}"`, 
+						caption: `"${foundBooks[i].volumeInfo.title}"`,
 						...Markup.inlineKeyboard([Markup.button.callback('Press to take more info', butName)])
 					});
 				await addDescriptionButton(butName, foundBooks[i].id);
             }
+            callback();
         }
     });
 }
@@ -85,6 +92,19 @@ function addDescriptionButton(name, id) {
                     await ctx.reply(res?.volumeInfo?.infoLink || 'Unfortunately, we don\'t know(');
                 }
             });
+        } catch (e) {
+            await ctx.reply("Sorry, we have a problem(");
+            console.log(e);
+        }
+    });
+}
+
+function addMoreButton(name, query, callback) {
+    bot.action(name, async (ctx) => {
+        try {
+            startIndex += 5;
+            await ctx.answerCbQuery();
+            await searchBook(ctx, query, callback);
         } catch (e) {
             await ctx.reply("Sorry, we have a problem(");
             console.log(e);
