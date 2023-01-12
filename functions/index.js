@@ -35,14 +35,14 @@ async function searchBook(ctx, query, callback) {
             console.log(err)
         } else {
             let foundBooks = [...res.items];
-            for (let i in foundBooks) {
-				let butName = `book_${foundBooks[i].id}`;
-                await ctx.replyWithPhoto({url: foundBooks[i].volumeInfo?.imageLinks?.thumbnail || NO_COVER_IMG_LINK},
+            for (let book of foundBooks) {
+				let butName = `book_${book.id}`;
+                await ctx.replyWithPhoto({url: book.volumeInfo?.imageLinks?.thumbnail || NO_COVER_IMG_LINK},
 					{
-						caption: `"${foundBooks[i].volumeInfo.title}"`,
+						caption: `"${book.volumeInfo.title}"`,
 						...Markup.inlineKeyboard([Markup.button.callback('Press to take more info', butName)])
 					});
-				await addDescriptionButton(butName, foundBooks[i].id);
+				await addDescriptionButton(butName, book.id);
             }
             callback();
         }
